@@ -3,46 +3,30 @@
 #include <iostream>
 #include <string>
 #include<vector>
+#include<algorithm>
 
 
 using namespace std;
 
 
-class Card// карта
+class Card
 {
-   public:
-     enum suit
-     {CLUBS,
-         DIAMONDS,
-               HEARTS,
-                  SPADES };
-     enum rank
-     {ACE=1,
-         DOUBLE=2,
-            TRIPLE=3,
-               FOUR=4,
-                  FIVE=5,
-                     SIX=6,
-                       SEVEN=7,
-                          EIGHT=8,
-                             NINE=9,
-                                TEN=10,
-                                   JACK=11,
-                                      QUEEN=12,
-                                         KING=13};
+public:
+    enum rank {
+        ACE = 1, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN,
+        JACK, QUEEN, KING
+    };
+    enum suit { CLUBS, DIAMONDS, HEARTS, SPADES };
 
-    Card(rank r=ACE,suit s=SPADES,bool ifu=true);
-
-
-     int GetValue()const;
-     void Flip();  //
-     friend ostream& operator<<(ostream& os, const Card& aCard);
+    Card(rank r = ACE, suit s = SPADES, bool ifu = true);
+    int GetValue() const;
+    void Flip();
+    friend ostream& operator<<(ostream& os, const Card& aCard);
 
 private:
-   rank m_Rank;
-   suit m_Suit;
-   bool m_IsFaseUp;
-
+    rank m_Rank;
+    suit m_Suit;
+    bool m_IsFaceUp;
 };
 class Hand  // коллекция карт на руках
 {
@@ -57,56 +41,105 @@ public:
 protected:
  vector <Card*> m_Cards;
 };
-
-
-class GenericPlayer:public Hand
+// абстрактный класс
+// абстрактный класс
+class GenericPlayer : public Hand
 {
+    friend ostream& operator<<(ostream& os, const GenericPlayer& aGenericPlayer);
 
- friend ostream& operator<<(ostream& os ,const GenericPlayer& aGenericPlayer);
 public:
- GenericPlayer(const string& name="");
+    GenericPlayer(const string& name = "");
 
- virtual ~GenericPlayer();
- virtual bool IsHitting() const=0;
- bool IsBoosted() const;
- void Bust() const;
+    virtual ~GenericPlayer();
+
+    // показывает, хочет ли игрок продолжать брать карты
+    // Для класса GenericPlayer функция не имеет своей реализации,
+    // т.к. для игрока и дилера это будут разные функции
+    virtual bool IsHitting() const = 0;
+
+    // возвращает значение, если у игрока перебор -
+    // сумму очков большую 21
+    // данная функция не виртуальная, т.к. имеет одинаковую реализацию
+    // для игрока и дилера
+    bool IsBusted() const;
+
+    // объявляет, что игрок имеет перебор
+    // функция одинакова как для игрока, так и для дилера
+    void Bust() const;
+
 protected:
- string m_Name;
+    string m_Name;
 };
-class Player:public GenericPlayer
+class Player : public GenericPlayer
 {
 public:
-    Player(const string& name="");
+    Player(const string& name = "");
+
     virtual ~Player();
+
+    // показывает, хочет ли игрок продолжать брать карты
     virtual bool IsHitting() const;
+
+    // объявляет, что игрок победил
     void Win() const;
+
+    // объявляет, что игрок проиграл
     void Lose() const;
+
+    // объявляет ничью
     void Push() const;
 };
-class House:public GenericPlayer
+class House : public GenericPlayer
 {
-  public:
-    House(const string& name="House");
+public:
+    House(const string& name="House")
+    {}
+
+
     virtual ~House();
+
+    // показывает, хочет ли дилер продолжать брать карты
     virtual bool IsHitting() const;
+
+    // переворачивает первую карту
     void FlipFirstCard();
 };
-class Deck: public Hand
+class Deck : public Hand
 {
 public:
-    void Populate();
-    void Shuffle();
-    void Deal (Hand& aHand);
-    void AdditionalCards(GenericPlayer aGenericPlayer);
-};
+    Deck();
 
+    virtual ~Deck();
+
+    // создает стандартную колоду из 52 карт
+    void Populate();
+
+    // тасует карты
+    void Shuffle();
+
+    // раздает одну карту в руку
+    void Deal(Hand& aHand);
+
+    // дает дополнительные карты игроку
+    void AdditionalCards(GenericPlayer& aGenericPlayer);
+};
 class Game
 {
- Deck m_Deck;
- //House m_House;
- vector<Player> m_players;    //vector<Player> m_players;???
 public:
- void Play();
+    Game( const vector<string>& names);
+
+    ~Game();
+
+    // проводит игру в Blackjack
+    void Play();
+
+private:
+    Deck m_Deck;
+    House m_House;
+    vector<Player>  m_Players ;
 };
+
+
+
 
 #endif // BLACK_JACK_H
